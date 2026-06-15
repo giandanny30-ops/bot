@@ -1,0 +1,31 @@
+GIANNI BOT — paket za upload
+============================
+
+Ovaj bot je vec povezan na tvoju stranicu: https://giann.uk
+
+KAKO POKRENUTI NA RAILWAY-u (preporuceno)
+-----------------------------------------
+1. Railway -> "+ Create" -> "Empty Service" (ili "Deploy from local")
+   ILI najlakse: napravi novi GitHub repo, uploaduj ove fajlove i povezi ga.
+2. U servisu otvori "Variables" i dodaj:
+      DISCORD_TOKEN = (tvoj bot token)
+      PANEL_API_URL = https://giann.uk
+3. NE dodaji domenu ni TCP proxy -- botu ne treba.
+4. Sacekaj deploy (~2 min) i bot ce biti ONLINE.
+
+VAZNO (Discord Developer Portal)
+--------------------------------
+Na https://discord.com/developers/applications -> tvoj bot -> "Bot" ->
+ukljuci sva 3 "Privileged Gateway Intents":
+   - Presence Intent
+   - Server Members Intent
+   - Message Content Intent
+A "Requires OAuth2 Code Grant" ostavi ISKLJUCENO.
+
+FAJLOVI U PAKETU
+----------------
+bot.py            -> kod bota (vec gleda na giann.uk)
+requirements.txt  -> Python biblioteke (discord.py, aiohttp)
+railway.toml      -> govori Railway-u: "python bot.py"
+.python-version   -> Python 3.11
+.env.example      -> primjer varijabli (preimenuj u .env ako pokreces lokalno)
