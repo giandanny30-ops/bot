@@ -1205,7 +1205,123 @@ def get_warnings(guild_id, uid):
 # ═══════════════════════════════════════════
 #    EMBED HELPER
 # ═══════════════════════════════════════════
+# ═══════════════════════════════════════════
+#    KOCKASTE IKONE — auto-mapa (naslovni emoji -> boxed custom emoji)
+#    Ubacuje se u OPIS embeda (jedina površina gdje se custom emoji vidi).
+#    Slots je namjerno isključen.
+# ═══════════════════════════════════════════
+EMOJI_TO_BOX = {
+    "❌": "<:X_icon:1517941133685035099>",
+    "🚫": "<:Ban:1517941295212003508>",
+    "⛔": "<:Ban:1517941295212003508>",
+    "🛑": "<:Ban:1517941295212003508>",
+    "💀": "<:ShieldX:1517941147249410059>",
+    "⚠️": "<:AlertTriangle:1517941080576753734>",
+    "⚠": "<:AlertTriangle:1517941080576753734>",
+    "✅": "<:CheckCircle:1517941120619778260>",
+    "☑️": "<:Check:1517941205965607032>",
+    "✔️": "<:Check:1517941205965607032>",
+    "🎉": "<:Sparkles:1517941091666624796>",
+    "✨": "<:Sparkles:1517941091666624796>",
+    "ℹ️": "<:Info:1517941197425868930>",
+    "ℹ": "<:Info:1517941197425868930>",
+    "⏳": "<:Clock:1517941303462203452>",
+    "⏱️": "<:Clock:1517941303462203452>",
+    "⏰": "<:Clock:1517941303462203452>",
+    "⏸️": "<:Pause:1517941314459664498>",
+    "⏸": "<:Pause:1517941314459664498>",
+    "🏦": "<:Wallet:1517941117671182376>",
+    "💰": "<:Wallet:1517941117671182376>",
+    "💶": "<:DollarSign:1517941046326202428>",
+    "💵": "<:DollarSign:1517941046326202428>",
+    "💸": "<:DollarSign:1517941046326202428>",
+    "🛡️": "<:ShieldCheck:1517941141553549534>",
+    "🛡": "<:ShieldCheck:1517941141553549534>",
+    "👑": "<:Crown:1517941115012255744>",
+    "📋": "<:ClipboardList:1517941111837032469>",
+    "📝": "<:PencilLine:1517941331786203259>",
+    "✏️": "<:PencilLine:1517941331786203259>",
+    "🏅": "<:Trophy:1517941103230193834>",
+    "🏆": "<:Trophy:1517941103230193834>",
+    "🥇": "<:Trophy:1517941103230193834>",
+    "🔔": "<:Bell:1517941172545519697>",
+    "🗳️": "<:ListChecks:1517941259841306674>",
+    "🗳": "<:ListChecks:1517941259841306674>",
+    "🔒": "<:Lock:1517941200403955922>",
+    "🔐": "<:Lock:1517941200403955922>",
+    "🔑": "<:Unlock:1517941203075596540>",
+    "🎮": "<:Gamepad2:1517941043780387057>",
+    "📊": "<:BarChart:1517941275691847730>",
+    "📈": "<:TrendingUp:1517941105495244994>",
+    "🎯": "<:Target:1517941083483672837>",
+    "⚙️": "<:Settings:1517941175292793014>",
+    "⚙": "<:Settings:1517941175292793014>",
+    "🎵": "<:Music:1517941123476226249>",
+    "🎶": "<:Music:1517941123476226249>",
+    "❤️": "<:Heart:1517941054492643348>",
+    "💚": "<:Heart:1517941054492643348>",
+    "💜": "<:Heart:1517941054492643348>",
+    "⭐": "<:Star:1517941065422737459>",
+    "🌟": "<:Star:1517941065422737459>",
+    "🎁": "<:Gift:1517941060071063623>",
+    "🔥": "<:Flame:1517941077880082433>",
+    "⚡": "<:Zap:1517941149795483780>",
+    "👤": "<:User:1517941158364577842>",
+    "👥": "<:Users:1517941086541320282>",
+    "🛒": "<:ShoppingCart:1517941089389252800>",
+    "🛍️": "<:ShoppingBag:1517941270209626297>",
+    "📦": "<:Archive:1517941281379192933>",
+    "🔍": "<:Search:1517941131210395709>",
+    "🗑️": "<:Trash2:1517941194880061611>",
+    "🗑": "<:Trash2:1517941194880061611>",
+    "📅": "<:Calendar:1517941401562648787>",
+    "🌍": "<:Globe:1517941072255254721>",
+    "🌐": "<:Globe2:1517941343547031704>",
+    "👮": "<:Shield:1517941138986893414>",
+    "👁️": "<:Eye:1517941192330055791>",
+    "👁": "<:Eye:1517941192330055791>",
+    "📧": "<:Mail:1517941392893018284>",
+    "📨": "<:Mail:1517941392893018284>",
+    "💬": "<:MessageCircle:1517941152936886553>",
+    "🔧": "<:Wrench:1517941284247961680>",
+    "🔄": "<:RefreshCw:1517941184004358335>",
+    "📡": "<:Activity:1517941108691173416>",
+    "🔊": "<:Volume2:1517941300538638456>",
+    "🎤": "<:Mic:1517941292246634677>",
+    "🖼️": "<:Image:1517941244855062752>",
+    "🔗": "<:Link:1517941248072093726>",
+    "🏷️": "<:Tag:1517941278372003921>",
+    "🚩": "<:Flag:1517941380469620776>",
+    "📍": "<:MapPin:1517941398668841010>",
+    "🚀": "<:Rocket:1517941286886314014>",
+    "🎲": "<:Dices:1517941128605991115>",
+    "❓": "<:HelpCircle:1517941068513939456>",
+    "⚔️": "<:Swords:1517941062948225156>",
+    "⚔": "<:Swords:1517941062948225156>",
+}
+_EMOJI_BOX_ORDER = sorted(EMOJI_TO_BOX, key=len, reverse=True)
+
+def _box_icon_for(text):
+    if not text:
+        return None
+    t = str(text).lstrip()
+    if not t or t[0] == "<":
+        return None
+    if "slot" in t.lower():
+        return None
+    for u in _EMOJI_BOX_ORDER:
+        if t.startswith(u):
+            return EMOJI_TO_BOX[u]
+    return None
+
+def _prepend_box(title, desc):
+    box = _box_icon_for(title)
+    if box and not str(desc or "").lstrip().startswith("<:"):
+        return f"{box}  {desc}" if desc else box
+    return desc
+
 def em(title, desc="", color=COLORS["balkan"], fields=None, footer=None, thumb=None, image=None):
+    desc = _prepend_box(title, desc)
     e = discord.Embed(title=title, description=desc, color=color, timestamp=datetime.now(timezone.utc))
     if fields:
         for n, v, inline in fields:
@@ -1234,7 +1350,9 @@ def _wrap_to_embed(content):
     if content is None: return None
     s = str(content)
     if not s.strip(): return None
-    return em(None, s, color=_autoembed_color_for(s))
+    box = _box_icon_for(s)
+    body = f"{box}  {s}" if box else s
+    return em(None, body, color=_autoembed_color_for(s))
 
 def _aembed_should_wrap(content, args, kwargs, extra_skip=()):
     """Vrati True samo ako poruka NEMA embed/file/view/modal i NIJE prazna."""
@@ -1327,6 +1445,7 @@ print("[auto-embed] aktivan — sve plain poruke (send/edit/reply/followup) auto
 
 # Premium embed za važne ekrane (profil, daily, level-up, pobjede, shop)
 def em_pro(title, desc="", color=COLORS["gold"], fields=None, footer=None, thumb=None, image=None, author=None, accent=True):
+    desc = _prepend_box(title, desc)
     sep = "˚｡⋆୨୧˚ ───────────── ˚୨୧⋆｡˚"
     if accent and desc:
         desc = f"{sep}\n{desc}\n{sep}"
