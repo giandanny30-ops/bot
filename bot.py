@@ -4,6 +4,9 @@ from collections import defaultdict, deque, Counter
 from discord.ext import commands, tasks
 from discord import app_commands
 from datetime import datetime, timezone, timedelta
+import sys as _sys
+try: _sys.stdout.reconfigure(line_buffering=True)
+except Exception: pass
 
 # ═══════════════════════════════════════════
 #           KONFIGURACIJA
@@ -879,6 +882,7 @@ async def try_prefix_command(message):
     PREFIX_ALIASES = {"i": "invite", "inv": "invite", "h": "help", "p": "ping", "lb": "leaderboard", "np": "spotify", "sp": "spotify",  "tc": "topchatters", "top": "topchatters", "b": "bank", "lot": "lottery", "r": "remind", "qrcode": "qr"}
     cmd_name = PREFIX_ALIASES.get(cmd_name, cmd_name)
     cmd = bot.tree.get_command(cmd_name)
+    print(f"[DBG] prefix cmd_name={cmd_name!r} found={cmd is not None}", flush=True)
     if cmd is None: return False
     # Kanal pravila
     if not message.author.guild_permissions.administrator:
@@ -1915,6 +1919,7 @@ async def on_member_update(before, after):
 async def on_message(message):
     if message.author.bot: return
     if not message.guild: return
+    print(f"[DBG] msg from {message.author} len={len(message.content)} content={message.content[:40]!r}", flush=True)
 
     # ── Prefix bridge (.kpm radi kao /kpm) ──
     if message.content.startswith("."):
