@@ -3626,6 +3626,22 @@ for _w in KALADONT_START_WORDS:
 kaladont_games: dict = {}  # channel_id -> {word, used, starter, letters, chain, msg}
 
 KALADONT_ICONS = ["✨","⚡","🔥","💫","🌊","🍀","🎯","💥","🌟","🎪","💎","🎭","🚀","🦋","🐉","🎶"]
+# Kockaste (boxed) ikone — koriste se SAMO u opisu kartice (description),
+# gdje se custom emoji renderuje. NE koristiti u naslovima/field-name-ovima.
+KALADONT_BOX_ICONS = [
+    "<:Sparkles:1517941091666624796>",
+    "<:Zap:1517941149795483780>",
+    "<:Flame:1517941077880082433>",
+    "<:Star:1517941065422737459>",
+    "<:Trophy:1517941103230193834>",
+    "<:Diamond:1517941267626197052>",
+    "<:Crown:1517941115012255744>",
+    "<:Gift:1517941060071063623>",
+    "<:Target:1517941083483672837>",
+    "<:BookOpen:1517941075241861245>",
+    "<:Music:1517941123476226249>",
+    "<:Heart:1517941054492643348>",
+]
 KALADONT_COLOR = 0xF1C40F   # aqua — konzistentno s ostatkom bota
 
 def kaladont_start_embed(game: dict, mention: str):
@@ -3685,7 +3701,7 @@ def kaladont_active_embed(game: dict):
     return e
 
 def kaladont_word_card(word: str, player: str, req: str, count: int):
-    icon = KALADONT_ICONS[(count - 1) % len(KALADONT_ICONS)]
+    icon = KALADONT_BOX_ICONS[(count - 1) % len(KALADONT_BOX_ICONS)]
     streak_fx = E_FIRE1 if count < 5 else (E_FIRE2 if count < 10 else (E_FIRE3 if count < 20 else E_FIRE4))
     e = discord.Embed(
         description=(
@@ -8054,6 +8070,24 @@ GAMES_CATALOG = [
     },
 ]
 
+# ── Kockaste (boxed) ikone po igri — prikazuju se u OPISU embeda (custom emoji
+#    se NE renderuje u naslovu). Slots namjerno izostavljen (ostaje 🎰). ──
+GAME_BOX_EMOJI = {
+    "/kviz":              "<:HelpCircle:1517941068513939456>",
+    "/geografija":        "<:Globe:1517941072255254721>",
+    "/kocka":             "<:Dices:1517941128605991115>",
+    "/blackjack":         "<:Diamond:1517941267626197052>",
+    "/amogus":            "<:Rocket:1517941286886314014>",
+    "/kaladont":          "<:BookOpen:1517941075241861245>",
+    "/vjasala":           "<:Gamepad2:1517941043780387057>",
+    "/toplo-hladno":      "<:Flame:1517941077880082433>",
+    "/kpm":               "<:Hand:1517941308927246461>",
+    "/rulet":             "<:Crosshair:1517941348785852587>",
+    "/hunt":              "<:Target:1517941083483672837>",
+    "/battle":            "<:Swords:1517941062948225156>",
+    "/brojanje-postavi":  "<:Hash:1517941239389880410>",
+}
+
 class GamesView(discord.ui.View):
     def __init__(self, uid: int):
         super().__init__(timeout=180)
@@ -8067,9 +8101,11 @@ class GamesView(discord.ui.View):
 
     def _build_embed_and_file(self):
         g = GAMES_CATALOG[self.idx]
+        box = GAME_BOX_EMOJI.get(g["cmd"])
+        head = f"{box}  **`{g['cmd']}`**" if box else f"**`{g['cmd']}`**"
         e = discord.Embed(
             title=f"{g['emoji']}  {g['name']}",
-            description=f"**`{g['cmd']}`**\n\n{g['desc']}",
+            description=f"{head}\n\n{g['desc']}",
             color=g["color"], timestamp=datetime.now(timezone.utc)
         )
         e.add_field(name="📖 Kako se igra", value=g["kako"], inline=False)
