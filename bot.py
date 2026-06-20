@@ -3344,7 +3344,7 @@ class KPM(discord.ui.View):
 @bot.tree.command(name="kpm", description="🎮 Kamen-Papir-Makaze")
 async def kpm(i: discord.Interaction):
     v = KPM(i.user)
-    await i.response.send_message(embed=em("🎮 Kamen-Papir-Makaze", f"{i.user.mention}, odaberi potez! ⏱️ 30s", color=COLORS["balkan"]), view=v)
+    await i.response.send_message(embed=em("🎮 Kamen-Papir-Makaze", f"<:Hand:1517941308927246461>  {i.user.mention}, odaberi potez! ⏱️ 30s", color=COLORS["balkan"]), view=v)
     v.msg = await i.original_response()
 
 @bot.tree.command(name="slots", description="🎰 Slot mašina — uloži od 20 do 1.000.000.000 💶")
@@ -3542,7 +3542,7 @@ class VjesalaView(discord.ui.View):
         right_letters = [l for l in sorted(self.guessed) if l in self.word]
         t = title or "🎮 Vješala"
         c = color or COLORS["balkan"]
-        e = discord.Embed(title=t, color=c, timestamp=datetime.now(timezone.utc))
+        e = discord.Embed(title=t, description="<:Gamepad2:1517941043780387057>  **Pogodi skrivenu riječ slovo po slovo!**", color=c, timestamp=datetime.now(timezone.utc))
         e.add_field(name="🔤 Riječ", value=f"`{self.display_word()}`", inline=False)
         e.add_field(name="💀 Vješalo", value=VJASALA_FAZE[self.wrong], inline=True)
         e.add_field(name="❌ Pogrešna", value=" ".join(wrong_letters) or "—", inline=True)
@@ -3654,7 +3654,7 @@ def kaladont_start_embed(game: dict, mention: str):
         title="🔤  K A L A D O N T",
         description=(
             f"━━━━━━━━━━━━━━━━━━━━━\n"
-            f"✨ Igra je počela! Prva riječ:\n"
+            f"<:Sparkles:1517941091666624796>  Igra je počela! Prva riječ:\n"
             f"## 💬  **{word}**\n"
             f"━━━━━━━━━━━━━━━━━━━━━"
         ),
@@ -4056,7 +4056,7 @@ class ToploView(discord.ui.View):
         guesses = game.get("guesses", 0)
         history = game.get("history", [])[-5:]
         c = color or COLORS["info"]
-        e = discord.Embed(title="🌡️ Toplo-Hladno", color=c, timestamp=datetime.now(timezone.utc))
+        e = discord.Embed(title="🌡️ Toplo-Hladno", description="<:Flame:1517941077880082433>  **Pogodi tajni broj — toplije ili hladnije!**", color=c, timestamp=datetime.now(timezone.utc))
         e.add_field(name="🎯 Raspon", value=f"`1 — {self.max_num}`", inline=True)
         e.add_field(name="🔢 Pokušaji", value=f"`{guesses}`", inline=True)
         if result: e.add_field(name="📡 Signal", value=result, inline=False)
@@ -5769,7 +5769,7 @@ async def hunt(i: discord.Interaction):
     ri    = RARITY_EMOJI[rarity]
     e = discord.Embed(
         title=f"🏹  Uhvatio si životinje!",
-        description=f"## {emoji}  {animal}\n{ri} **{rarity.capitalize()}**  ·  ⚔️ Snaga `{power}`",
+        description=f"<:Target:1517941083483672837>  **Uspješan lov!**\n## {emoji}  {animal}\n{ri} **{rarity.capitalize()}**  ·  ⚔️ Snaga `{power}`",
         color=color,
         timestamp=datetime.now(timezone.utc)
     )
@@ -5842,7 +5842,7 @@ async def battle(i: discord.Interaction, korisnik: discord.Member):
     e = discord.Embed(
         title="⚔️  BITKA!",
         description=(
-            f"**{i.user.display_name}** vs **{korisnik.display_name}**\n"
+            f"<:Swords:1517941062948225156>  **{i.user.display_name}** vs **{korisnik.display_name}**\n"
             f"{bar}\n"
             f"⚔️ `{p1}` vs `{p2}` ⚔️"
         ),
@@ -6280,7 +6280,7 @@ def _bj_str(hand, hide=False):
     return "  ".join(f"`{r}{s}`" for r, s in hand)
 
 def _bj_embed(player, dealer, oklada, note="", hide=True):
-    e = discord.Embed(title="🃏 Blackjack", color=COLORS["dark"], timestamp=datetime.now(timezone.utc))
+    e = discord.Embed(title="🃏 Blackjack", description="<:Diamond:1517941267626197052>  **Pobijedi dilera — cilj je 21!**", color=COLORS["dark"], timestamp=datetime.now(timezone.utc))
     e.add_field(name=f"Tvoje karte  ({_bj_val(player)})", value=_bj_str(player),         inline=False)
     e.add_field(name=f"Dealer  {'(?)' if hide else f'({_bj_val(dealer)})'}", value=_bj_str(dealer, hide), inline=False)
     if note:
@@ -6456,7 +6456,7 @@ async def kviz(i: discord.Interaction, oklada: int = 50):
     view = TriviaView(correct, wrong, oklada, i.user.id, pool=TRIVIA_QS, title="🧠 Balkan Trivia")
     e = em_pro(
         f"{E_GAME} Balkan Trivia",
-        f"❓ **{question}**",
+        f"<:HelpCircle:1517941068513939456>  **{question}**",
         color=GAME_COLORS["kviz"],
         author=i.user,
         fields=[
@@ -6536,7 +6536,7 @@ async def geografija(i: discord.Interaction, oklada: int = 50):
         return await i.response.send_message(embed=em("❌", f"Nemaš dovoljno! Imaš `{eco['balance']:,} 💶`.", color=COLORS["error"]), ephemeral=True)
     question, correct, wrong = random.choice(GEOGRAFIJA_QS)
     view = TriviaView(correct, wrong, oklada, i.user.id, pool=GEOGRAFIJA_QS, title="🌍 Geografija")
-    e = discord.Embed(title="🌍 Geografija", description=f"**{question}**", color=COLORS["info"], timestamp=datetime.now(timezone.utc))
+    e = discord.Embed(title="🌍 Geografija", description=f"<:Globe:1517941072255254721>  **{question}**", color=COLORS["info"], timestamp=datetime.now(timezone.utc))
     e.add_field(name="💶 Oklada", value=f"`{oklada}`", inline=True)
     e.add_field(name="⏱️ Vrijeme", value="`20 sekundi`", inline=True)
     e.set_footer(text=f"{BOT_NAME} • Putuj svijetom!")
@@ -8070,24 +8070,6 @@ GAMES_CATALOG = [
     },
 ]
 
-# ── Kockaste (boxed) ikone po igri — prikazuju se u OPISU embeda (custom emoji
-#    se NE renderuje u naslovu). Slots namjerno izostavljen (ostaje 🎰). ──
-GAME_BOX_EMOJI = {
-    "/kviz":              "<:HelpCircle:1517941068513939456>",
-    "/geografija":        "<:Globe:1517941072255254721>",
-    "/kocka":             "<:Dices:1517941128605991115>",
-    "/blackjack":         "<:Diamond:1517941267626197052>",
-    "/amogus":            "<:Rocket:1517941286886314014>",
-    "/kaladont":          "<:BookOpen:1517941075241861245>",
-    "/vjasala":           "<:Gamepad2:1517941043780387057>",
-    "/toplo-hladno":      "<:Flame:1517941077880082433>",
-    "/kpm":               "<:Hand:1517941308927246461>",
-    "/rulet":             "<:Crosshair:1517941348785852587>",
-    "/hunt":              "<:Target:1517941083483672837>",
-    "/battle":            "<:Swords:1517941062948225156>",
-    "/brojanje-postavi":  "<:Hash:1517941239389880410>",
-}
-
 class GamesView(discord.ui.View):
     def __init__(self, uid: int):
         super().__init__(timeout=180)
@@ -8101,11 +8083,9 @@ class GamesView(discord.ui.View):
 
     def _build_embed_and_file(self):
         g = GAMES_CATALOG[self.idx]
-        box = GAME_BOX_EMOJI.get(g["cmd"])
-        head = f"{box}  **`{g['cmd']}`**" if box else f"**`{g['cmd']}`**"
         e = discord.Embed(
             title=f"{g['emoji']}  {g['name']}",
-            description=f"{head}\n\n{g['desc']}",
+            description=f"**`{g['cmd']}`**\n\n{g['desc']}",
             color=g["color"], timestamp=datetime.now(timezone.utc)
         )
         e.add_field(name="📖 Kako se igra", value=g["kako"], inline=False)
