@@ -26,6 +26,7 @@ BOT_ICON_URL: str = ""
 # i gasi se automatski.
 OFFICIAL_INVITE   = "gian"               # GIAN
 OFFICIAL_GUILD_ID = 1494043955980140754  # ID zvaničnog GIAN servera
+_GIAN = discord.Object(id=OFFICIAL_GUILD_ID)  # guild-specific komande (ne troše global limit)
 
 COLORS = {
     "default": 0x2B2D42, "success": 0x43B581, "error":   0xE74C3C,
@@ -2872,7 +2873,7 @@ async def avatar(i: discord.Interaction, korisnik: discord.Member = None):
 
 # /say uklonjeno (v2.1) — rizik impersonacije/uznemiravanja kroz bota.
 
-@bot.tree.command(name="brojanje-postavi", description="🔢 Postavi kanal za brojanje [ADMIN]")
+@bot.tree.command(name="brojanje-postavi", description="🔢 Postavi kanal za brojanje [ADMIN]", guild=_GIAN)
 @app_commands.describe(kanal="Kanal u kojem će se brojati", pocetak="Od kog broja krenuti (default 0 → sljedeći je 1)")
 @app_commands.checks.has_permissions(administrator=True)
 async def brojanje_postavi(i: discord.Interaction, kanal: discord.TextChannel, pocetak: int = 0):
@@ -2896,7 +2897,7 @@ async def brojanje_postavi(i: discord.Interaction, kanal: discord.TextChannel, p
            color=COLORS["success"])
     await i.response.send_message(embed=e)
 
-@bot.tree.command(name="brojanje-info", description="🔢 Pokaži stanje brojanja")
+@bot.tree.command(name="brojanje-info", description="🔢 Pokaži stanje brojanja", guild=_GIAN)
 async def brojanje_info(i: discord.Interaction):
     cfg = data.get("counting", {}).get(str(i.guild.id))
     if not cfg:
@@ -2922,7 +2923,7 @@ async def brojanje_info(i: discord.Interaction):
     e.set_footer(text=f"{BOT_NAME} {VERSION}")
     await i.response.send_message(embed=e)
 
-@bot.tree.command(name="brojanje-reset", description="🔢 Resetuj brojanje na 0 [ADMIN]")
+@bot.tree.command(name="brojanje-reset", description="🔢 Resetuj brojanje na 0 [ADMIN]", guild=_GIAN)
 @app_commands.checks.has_permissions(administrator=True)
 async def brojanje_reset(i: discord.Interaction):
     cfg = data.get("counting", {}).get(str(i.guild.id))
@@ -3078,7 +3079,7 @@ async def ban(i: discord.Interaction, korisnik: discord.Member, razlog: str = "B
             ]))
         except: pass
 
-@bot.tree.command(name="ban-dozvola", description="👑 [VLASNIK] Dozvoli/oduzmi pravo na /ban za 〢 /GIAN člana")
+@bot.tree.command(name="ban-dozvola", description="👑 [VLASNIK] Dozvoli/oduzmi pravo na /ban za 〢 /GIAN člana", guild=_GIAN)
 async def ban_dozvola(i: discord.Interaction, akcija: str, korisnik: discord.Member):
     """
     akcija: "add" (dodaj dozvolu) ili "remove" (ukloni dozvolu)
@@ -6983,7 +6984,7 @@ async def _reset_gw_worker(chan: discord.TextChannel, host: discord.Member, nagr
     except Exception as ex:
         print(f"[reset_gw worker] error: {ex}")
 
-@bot.tree.command(name="reset-gw", description="🔄 [ADMIN] Resetuj i ponovo pokreni giveaway za 5 minuta")
+@bot.tree.command(name="reset-gw", description="🔄 [ADMIN] Resetuj i ponovo pokreni giveaway za 5 minuta", guild=_GIAN)
 @app_commands.describe(nagrada="Nagrada za novi giveaway", kanal="Kanal (default ovaj)")
 @app_commands.default_permissions(manage_guild=True)
 @app_commands.checks.has_permissions(manage_guild=True)
@@ -7017,7 +7018,7 @@ async def reset_gw_cmd(i: discord.Interaction, nagrada: str, kanal: discord.Text
 # ═══════════════════════════════════════════
 #    💰 OWNER-ONLY: DODAJ / ODUZMI NOVAC
 # ═══════════════════════════════════════════
-@bot.tree.command(name="novac", description="💰 [OWNER] Dodaj ili oduzmi coina korisniku")
+@bot.tree.command(name="novac", description="💰 [OWNER] Dodaj ili oduzmi coina korisniku", guild=_GIAN)
 @app_commands.describe(akcija="dodaj ili oduzmi", korisnik="Kome mijenjamo balans", iznos="Koliko coina")
 async def novac_cmd(i: discord.Interaction, akcija: str, korisnik: discord.Member, iznos: int):
     if i.user.id not in OWNER_IDS:
@@ -7155,7 +7156,7 @@ class TicketOpenView(discord.ui.View):
         await chan.send(content=i.user.mention, embed=e, view=TicketCloseView())
         await i.followup.send(f"✅ Ticket otvoren: {chan.mention}", ephemeral=True)
 
-@bot.tree.command(name="ticket-setup", description="🎫 Postavi ticket sistem u ovaj kanal")
+@bot.tree.command(name="ticket-setup", description="🎫 Postavi ticket sistem u ovaj kanal", guild=_GIAN)
 @app_commands.default_permissions(manage_channels=True)
 @app_commands.checks.has_permissions(administrator=True)
 async def ticket_setup(i: discord.Interaction):
@@ -7436,7 +7437,7 @@ async def sort_roles(ctx: commands.Context):
     except Exception as ex:
         await ctx.send(embed=em("❌", f"Greška: `{ex}`", color=COLORS["error"]))
 
-@bot.tree.command(name="setup-roles", description="🏷️ Kreiraj sve GIAN uloge odjednom [ADMIN]")
+@bot.tree.command(name="setup-roles", description="🏷️ Kreiraj sve GIAN uloge odjednom [ADMIN]", guild=_GIAN)
 @app_commands.default_permissions(administrator=True)
 async def setup_roles(i: discord.Interaction):
     await i.response.defer(ephemeral=True)
@@ -7491,7 +7492,7 @@ async def setup_roles(i: discord.Interaction):
 # ═══════════════════════════════════════════
 #    SERVER SETUP KOMANDE
 # ═══════════════════════════════════════════
-@bot.tree.command(name="setup", description="⚙️ Postavi sve kanale i uloge servera odjednom [ADMIN]")
+@bot.tree.command(name="setup", description="⚙️ Postavi sve kanale i uloge servera odjednom [ADMIN]", guild=_GIAN)
 @app_commands.default_permissions(administrator=True)
 @discord.app_commands.describe(
     welcome="Kanal za dobrodošlicu novih članova",
@@ -7562,7 +7563,7 @@ async def setup_all(
     e.set_footer(text=f"Pregled svih postavki: /server-config | {BOT_NAME}")
     await i.response.send_message(embed=e, ephemeral=True)
 
-@bot.tree.command(name="setup-welcome", description="⚙️ Postavi welcome kanal [ADMIN]")
+@bot.tree.command(name="setup-welcome", description="⚙️ Postavi welcome kanal [ADMIN]", guild=_GIAN)
 @discord.app_commands.describe(kanal="Kanal gdje bot šalje welcome embed novim članovima")
 @discord.app_commands.default_permissions(manage_guild=True)
 async def setup_welcome(i: discord.Interaction, kanal: discord.TextChannel):
@@ -7585,7 +7586,7 @@ async def setup_welcome(i: discord.Interaction, kanal: discord.TextChannel):
     e_out.set_footer(text=f"{BOT_NAME} • Welcome Setup")
     await i.response.send_message(embed=e_out, ephemeral=True)
 
-@bot.tree.command(name="aktivnost-setup", description="⚙️ Postavi kanal za XP level-up i aktivnost [ADMIN]")
+@bot.tree.command(name="aktivnost-setup", description="⚙️ Postavi kanal za XP level-up i aktivnost [ADMIN]", guild=_GIAN)
 @discord.app_commands.describe(
     levelup_kanal="Kanal gdje bot objavljuje level-up notifikacije",
     xp_kanal="Kanal za XP/rank prikaz (/rank, /leaderboard komande)"
@@ -7620,7 +7621,7 @@ async def aktivnost_setup(
     e_out.set_footer(text="GIAN (Custom) • Aktivnost Setup")
     await i.response.send_message(embed=e_out, ephemeral=True)
 
-@bot.tree.command(name="setup-leave", description="⚙️ Postavi leave kanal [ADMIN]")
+@bot.tree.command(name="setup-leave", description="⚙️ Postavi leave kanal [ADMIN]", guild=_GIAN)
 @discord.app_commands.describe(kanal="Kanal gdje bot šalje poruku kad član napusti server")
 @discord.app_commands.default_permissions(manage_guild=True)
 async def setup_leave(i: discord.Interaction, kanal: discord.TextChannel):
@@ -7641,7 +7642,7 @@ async def setup_leave(i: discord.Interaction, kanal: discord.TextChannel):
     e_out.set_footer(text=f"{BOT_NAME} • Leave Setup")
     await i.response.send_message(embed=e_out, ephemeral=True)
 
-@bot.tree.command(name="setup-autorole", description="⚙️ Postavi automatsku ulogu pri ulasku [ADMIN]")
+@bot.tree.command(name="setup-autorole", description="⚙️ Postavi automatsku ulogu pri ulasku [ADMIN]", guild=_GIAN)
 @discord.app_commands.describe(uloga="Uloga koja se daje svim novim članovima")
 @discord.app_commands.default_permissions(manage_roles=True)
 async def setup_autorole(i: discord.Interaction, uloga: discord.Role):
@@ -7651,7 +7652,7 @@ async def setup_autorole(i: discord.Interaction, uloga: discord.Role):
     save_data()
     await i.response.send_message(embed=em("✅ Auto-Uloga postavljena!", f"Svaki novi član dobije: {uloga.mention}", color=COLORS["success"]), ephemeral=True)
 
-@bot.tree.command(name="setup-log", description="⚙️ Postavi log kanal [ADMIN]")
+@bot.tree.command(name="setup-log", description="⚙️ Postavi log kanal [ADMIN]", guild=_GIAN)
 @discord.app_commands.describe(kanal="Log kanal gdje bot šalje editovane/obrisane poruke, join/leave, banove")
 @discord.app_commands.default_permissions(manage_guild=True)
 async def setup_log(i: discord.Interaction, kanal: discord.TextChannel):
@@ -7659,7 +7660,7 @@ async def setup_log(i: discord.Interaction, kanal: discord.TextChannel):
     save_data()
     await i.response.send_message(embed=em("✅ Log kanal postavljen!", f"Kanal: {kanal.mention}\nBiće logovano: join/leave, edit, delete, ban.", color=COLORS["success"]), ephemeral=True)
 
-@bot.tree.command(name="setup-starboard", description="⚙️ Postavi starboard kanal [ADMIN]")
+@bot.tree.command(name="setup-starboard", description="⚙️ Postavi starboard kanal [ADMIN]", guild=_GIAN)
 @discord.app_commands.describe(kanal="Starboard kanal", zvjezdice="Broj ⭐ za pin (default: 3)")
 @discord.app_commands.default_permissions(manage_guild=True)
 async def setup_starboard(i: discord.Interaction, kanal: discord.TextChannel, zvjezdice: int = 3):
@@ -7669,7 +7670,7 @@ async def setup_starboard(i: discord.Interaction, kanal: discord.TextChannel, zv
     save_data()
     await i.response.send_message(embed=em("✅ Starboard postavljen!", f"Kanal: {kanal.mention}\nPotrebno ⭐: `{zvjezdice}`", color=COLORS["success"]), ephemeral=True)
 
-@bot.tree.command(name="setup-levelrole", description="⚙️ Postavi ulogu za određeni level [ADMIN]")
+@bot.tree.command(name="setup-levelrole", description="⚙️ Postavi ulogu za određeni level [ADMIN]", guild=_GIAN)
 @discord.app_commands.describe(level="Level za koji se daje uloga", uloga="Uloga koja se daje")
 @discord.app_commands.default_permissions(manage_roles=True)
 async def setup_levelrole(i: discord.Interaction, level: int, uloga: discord.Role):
@@ -7680,7 +7681,7 @@ async def setup_levelrole(i: discord.Interaction, level: int, uloga: discord.Rol
     save_data()
     await i.response.send_message(embed=em("✅ Level uloga postavljena!", f"Level **{level}** → {uloga.mention}", color=COLORS["success"]), ephemeral=True)
 
-@bot.tree.command(name="setup-games", description="⚙️ Postavi kanal(e) gdje svi memberi mogu igrati sve igre [ADMIN]")
+@bot.tree.command(name="setup-games", description="⚙️ Postavi kanal(e) gdje svi memberi mogu igrati sve igre [ADMIN]", guild=_GIAN)
 @discord.app_commands.describe(
     kanal="Kanal gdje sve igre rade slobodno za sve membere",
     ukloni="Ukloni kanal iz liste game kanala (True = ukloni)"
@@ -7720,7 +7721,7 @@ async def setup_games_cmd(i: discord.Interaction, kanal: discord.TextChannel, uk
     e.set_footer(text=f"{BOT_NAME} • Setup Games")
     await i.response.send_message(embed=e, ephemeral=True)
 
-@bot.tree.command(name="server-config", description="⚙️ Pregled konfiguracije servera [ADMIN]")
+@bot.tree.command(name="server-config", description="⚙️ Pregled konfiguracije servera [ADMIN]", guild=_GIAN)
 @discord.app_commands.default_permissions(manage_guild=True)
 async def server_config_cmd(i: discord.Interaction):
     cfg = get_guild_config(i.guild.id)
@@ -8818,7 +8819,7 @@ async def vatrice_start(i: discord.Interaction):
     e.set_footer(text=f"{BOT_NAME} • Pokrenuo: {i.user.display_name}")
     await i.followup.send(embed=e)
 
-bot.tree.add_command(vatrice_group)
+bot.tree.add_command(vatrice_group, guild=_GIAN)
 
 # ═══════════════════════════════════════════
 #    🎱 AUTO BINGO — svakih 3h u chatu
@@ -11044,7 +11045,7 @@ async def backup_status_cmd(i: discord.Interaction):
         ephemeral=True,
     )
 
-bot.tree.add_command(backup_group)
+bot.tree.add_command(backup_group, guild=_GIAN)
 
 
 # ═══════════════════════════════════════════
