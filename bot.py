@@ -15,6 +15,9 @@ BOT_NAME = "GIANNI (Custom)"
 VERSION  = "v3.0"
 TOKEN    = os.environ.get("DISCORD_TOKEN")
 
+# ── Bot avatar URL — popunjava se u on_ready, koristi se kao ikona na svim embedima ──
+BOT_ICON_URL: str = ""
+
 # ═══════════════════════════════════════════
 #    🔐 LICENCA — Jedini originalni bot
 # ═══════════════════════════════════════════
@@ -813,14 +816,25 @@ CMDS_ANYWHERE = {
 }
 
 # Kanali u kojima SVE komande rade (slobodne zone)
-FREE_CHANNELS = ["comanda", "komanda", "komande", "giveaways", "events", "bot-spam", "bot-commands"]
+FREE_CHANNELS = [
+    "comanda", "komanda", "komande", "giveaways", "events", "bot-spam", "bot-commands",
+    # Uobičajeni nazivi za game kanale — sve igre rade ovdje automatski
+    "igre", "igrica", "igrice", "igranje", "games", "game", "play", "gaming",
+    "zabava", "fun", "bot-igre", "bot-games",
+]
 
-def check_channel_rule(channel, cmd_name: str):
+def check_channel_rule(channel, cmd_name: str, guild_id: int = None):
     """Vrati None ako smije, ili ime potrebnog kanala ako ne smije."""
     ch_name = (channel.name or "").lower()
     # Slobodne zone — sve smije
     if any(fc in ch_name for fc in FREE_CHANNELS): return None
     if cmd_name in CMDS_ANYWHERE: return None
+    # ── Provjeri server-specifičan game kanal (postavljen sa /setup-games) ──
+    if guild_id is not None:
+        cfg = get_guild_config(guild_id)
+        game_channels = cfg.get("game_channels", [])
+        if channel.id in game_channels:
+            return None
     needed = CHANNEL_RULES.get(cmd_name)
     if not needed: return None  # nije ograničena
     if needed.lower() in ch_name: return None  # OK
@@ -860,7 +874,7 @@ async def _global_channel_check(interaction: discord.Interaction) -> bool:
         if interaction.user.guild_permissions.administrator: return True
     except: return True
 
-    needed = check_channel_rule(interaction.channel, interaction.command.name)
+    needed = check_channel_rule(interaction.channel, interaction.command.name, guild_id=interaction.guild_id)
     if needed is None: return True
     target = discord.utils.find(lambda c: needed.lower() in c.name.lower(), interaction.guild.text_channels)
     msg = f"❌ **Ova komanda nije za ovaj kanal!**\n➡️ Koristi je u {target.mention if target else f'#{needed}'}"
@@ -885,7 +899,7 @@ async def try_prefix_command(message):
     if cmd is None: return False
     # Kanal pravila
     if not message.author.guild_permissions.administrator:
-        needed = check_channel_rule(message.channel, cmd_name)
+        needed = check_channel_rule(message.channel, cmd_name, guild_id=message.guild.id)
         if needed:
             target = discord.utils.find(lambda c: needed.lower() in c.name.lower(), message.guild.text_channels)
             await message.channel.send(
@@ -1327,6 +1341,8 @@ def em(title, desc="", color=COLORS["balkan"], fields=None, footer=None, thumb=N
         for n, v, inline in fields:
             e.add_field(name=n, value=v or "\u200b", inline=inline)
     e.set_footer(text=footer or f"{BOT_NAME} {VERSION}")
+    if BOT_ICON_URL:
+        e.set_author(name=BOT_NAME, icon_url=BOT_ICON_URL)
     if thumb:  e.set_thumbnail(url=thumb)
     if image:  e.set_image(url=image)
     return e
@@ -1457,6 +1473,8 @@ def em_pro(title, desc="", color=COLORS["gold"], fields=None, footer=None, thumb
             e.add_field(name=f"⟢ {n}", value=v or "\u200b", inline=inline)
     if author:
         e.set_author(name=author.display_name, icon_url=author.display_avatar.url)
+    elif BOT_ICON_URL:
+        e.set_author(name=BOT_NAME, icon_url=BOT_ICON_URL)
     e.set_footer(text=footer or f"⚡ {BOT_NAME} {VERSION}")
     if thumb:  e.set_thumbnail(url=thumb)
     if image:  e.set_image(url=image)
@@ -1525,6 +1543,8 @@ async def _license_check_and_shutdown_if_clone():
 
 @bot.event
 async def on_ready():
+    global BOT_ICON_URL
+    BOT_ICON_URL = str(bot.user.display_avatar.url)
     print(f"\n{'═'*45}\n  {BOT_NAME} {VERSION} — ONLINE\n{'═'*45}")
     # ── 🔐 Licencna provjera — gasi se ako je kopija ──
     if not await _license_check_and_shutdown_if_clone():
@@ -7660,6 +7680,46 @@ async def setup_levelrole(i: discord.Interaction, level: int, uloga: discord.Rol
     save_data()
     await i.response.send_message(embed=em("✅ Level uloga postavljena!", f"Level **{level}** → {uloga.mention}", color=COLORS["success"]), ephemeral=True)
 
+@bot.tree.command(name="setup-games", description="⚙️ Postavi kanal(e) gdje svi memberi mogu igrati sve igre [ADMIN]")
+@discord.app_commands.describe(
+    kanal="Kanal gdje sve igre rade slobodno za sve membere",
+    ukloni="Ukloni kanal iz liste game kanala (True = ukloni)"
+)
+@discord.app_commands.default_permissions(manage_guild=True)
+async def setup_games_cmd(i: discord.Interaction, kanal: discord.TextChannel, ukloni: bool = False):
+    cfg = get_guild_config(i.guild.id)
+    game_channels = cfg.setdefault("game_channels", [])
+    if ukloni:
+        if kanal.id in game_channels:
+            game_channels.remove(kanal.id)
+            save_data()
+            await i.response.send_message(
+                embed=em("✅ Game kanal uklonjen!", f"{kanal.mention} više nije slobodna game zona.", color=COLORS["success"]),
+                ephemeral=True
+            )
+        else:
+            await i.response.send_message(
+                embed=em("⚠️ Nije pronađen", f"{kanal.mention} nije bio u listi game kanala.", color=COLORS["warning"]),
+                ephemeral=True
+            )
+        return
+    if kanal.id not in game_channels:
+        game_channels.append(kanal.id)
+    save_data()
+    popis = "\n".join(f"<#{cid}>" for cid in game_channels) or "*nema*"
+    e = discord.Embed(
+        title="✅ Game kanal postavljen!",
+        description=(
+            f"**Kanal:** {kanal.mention}\n\n"
+            f"Svi memberi sada mogu koristiti **sve igre** u ovom kanalu, bez ograničenja!\n\n"
+            f"**Aktivni game kanali:**\n{popis}"
+        ),
+        color=COLORS["success"],
+        timestamp=datetime.now(timezone.utc)
+    )
+    e.set_footer(text=f"{BOT_NAME} • Setup Games")
+    await i.response.send_message(embed=e, ephemeral=True)
+
 @bot.tree.command(name="server-config", description="⚙️ Pregled konfiguracije servera [ADMIN]")
 @discord.app_commands.default_permissions(manage_guild=True)
 async def server_config_cmd(i: discord.Interaction):
@@ -7668,6 +7728,8 @@ async def server_config_cmd(i: discord.Interaction):
     def ro(rid): return f"<@&{rid}>" if rid else "*nije postavljeno*"
     lr = cfg.get("level_roles", {})
     lr_txt = "\n".join(f"Level **{k}** → <@&{v}>" for k, v in sorted(lr.items(), key=lambda x: int(x[0]))) or "*nema*"
+    gc_ids = cfg.get("game_channels", [])
+    gc_txt = "\n".join(f"<#{cid}>" for cid in gc_ids) or "*nije postavljeno*"
     e = discord.Embed(title=f"⚙️ Konfiguracija — {i.guild.name}", color=COLORS["purple"], timestamp=datetime.now(timezone.utc))
     e.add_field(name="👋 Welcome kanal",    value=ch(cfg.get("welcome_channel")),   inline=True)
     e.add_field(name="👋 Leave kanal",      value=ch(cfg.get("leave_channel")),     inline=True)
@@ -7675,7 +7737,8 @@ async def server_config_cmd(i: discord.Interaction):
     e.add_field(name="📋 Log kanal",        value=ch(cfg.get("log_channel")),       inline=True)
     e.add_field(name="⭐ Starboard",        value=f"{ch(cfg.get('starboard_channel'))} (min {cfg.get('starboard_threshold', 3)}⭐)", inline=True)
     e.add_field(name="🎂 Birthday kanal",   value=ch(cfg.get("birthday_channel")),  inline=True)
-    e.add_field(name="🎊 Level uloge",      value=lr_txt, inline=False)
+    e.add_field(name="🎮 Game kanali",      value=gc_txt,                           inline=False)
+    e.add_field(name="🎊 Level uloge",      value=lr_txt,                           inline=False)
     await i.response.send_message(embed=e, ephemeral=True)
 
 @bot.tree.command(name="afk", description="😴 Postavi AFK status")
