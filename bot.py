@@ -788,11 +788,9 @@ CHANNEL_RULES = {
     "blackjack": "casino", "slots": "casino", "rulet": "casino",
     "kocka": "casino", "kradi": "casino",
     "bingo": "casino",
-    # Ekonomija
-    "baki": "economics", "posao": "economics", "daily": "economics",
+    # Ekonomija — samo casino ostaje ograničen, ostalo slobodno (dodano u CMDS_ANYWHERE)
     "daj": "economics", "shop": "economics", "kupi": "economics",
-    "bank": "economics", "lottery": "economics", "heist": "economics",
-    "quests": "economics", "rank": "economics", "leaderboard": "economics",
+    "bank": "economics", "heist": "economics",
     # Brojanje
     # (auto, brojanje ima svoj kanal kroz cnt_cfg)
     # Ljubavne
@@ -814,6 +812,10 @@ CMDS_ANYWHERE = {
     "setup-panels", "ticket-setup", "brojanje-postavi", "brojanje-info",
     "brojanje-reset", "setname", "setavatar", "setchannel", "sort-roles",
     "server-config", "vatrice", "tiketstaff",
+    # Ekonomija — slobodne komande (rade svuda)
+    "posao", "daily", "baki", "rank", "leaderboard", "quests", "lottery",
+    "vers", "aktivnost", "hunt", "zoo", "battle", "sell", "animals", "pray",
+    "brak", "kompli", "fora", "muv", "crush",
 }
 
 # Kanali u kojima SVE komande rade (slobodne zone)
