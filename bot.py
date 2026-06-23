@@ -7605,41 +7605,6 @@ async def setup_welcome(i: discord.Interaction, kanal: discord.TextChannel, poru
     e_out.set_footer(text=f"{BOT_NAME} • Welcome Setup")
     await i.response.send_message(embed=e_out, ephemeral=True)
 
-@bot.tree.command(name="aktivnost-setup", description="⚙️ Postavi kanal za XP level-up i aktivnost [ADMIN]")
-@discord.app_commands.describe(
-    levelup_kanal="Kanal gdje bot objavljuje level-up notifikacije",
-    xp_kanal="Kanal za XP/rank prikaz (/rank, /leaderboard komande)"
-)
-@discord.app_commands.default_permissions(manage_guild=True)
-async def aktivnost_setup(
-    i: discord.Interaction,
-    levelup_kanal: discord.TextChannel = None,
-    xp_kanal: discord.TextChannel = None
-):
-    cfg = get_guild_config(i.guild.id)
-    linije = []
-    if levelup_kanal:
-        cfg["levelup_channel"]   = levelup_kanal.id
-        cfg["aktivnost_channel"] = levelup_kanal.id
-        linije.append(f"📊 **Level-up / Aktivnost:** {levelup_kanal.mention}")
-    if xp_kanal:
-        cfg["xp_kanal"] = xp_kanal.id
-        linije.append(f"📈 **XP / Rank prikaz:** {xp_kanal.mention}")
-    if not linije:
-        return await i.response.send_message(
-            embed=em("⚠️ Ništa nije postavljeno", "Proslijedi barem jedan kanal:\n`/aktivnost-setup levelup_kanal:#aktivnost xp_kanal:#rank`", color=COLORS["warning"]),
-            ephemeral=True
-        )
-    save_data()
-    e_out = discord.Embed(
-        title="✅ Aktivnost Setup — Sačuvano!",
-        description="\n".join(linije),
-        color=0xFFD700,
-        timestamp=datetime.now(timezone.utc)
-    )
-    e_out.set_footer(text="GIAN (Custom) • Aktivnost Setup")
-    await i.response.send_message(embed=e_out, ephemeral=True)
-
 @bot.tree.command(name="setup-leave", description="⚙️ Postavi leave kanal i poruku [ADMIN]")
 @discord.app_commands.describe(
     kanal="Kanal gdje bot šalje poruku kad član napusti server",
@@ -7752,47 +7717,6 @@ async def test_leave(i: discord.Interaction):
         embed=em("✅ Test leave poslan!", f"Provjeri {chan.mention} da vidiš kako izgleda.", color=COLORS["success"]),
         ephemeral=True
     )
-
-@bot.tree.command(name="kanal-debug", description="🔍 [ADMIN] Provjeri kako bot vidi ovaj kanal (debug kanal-pravila)")
-@discord.app_commands.default_permissions(manage_guild=True)
-async def kanal_debug(i: discord.Interaction):
-    ch = i.channel
-    ch_raw      = (ch.name or "").lower()
-    ch_stripped = _strip_channel_name(ch.name or "")
-    cat_raw     = (ch.category.name if ch.category else "Nema kategorije").lower()
-    cat_stripped = _strip_channel_name(ch.category.name if ch.category else "")
-
-    # Pronađi sve CHANNEL_RULES koje dozvoljavaju ovaj kanal
-    dozvoljene = []
-    zabranjene = []
-    for cmd, needed in CHANNEL_RULES.items():
-        nl = needed.lower()
-        ok = (nl in ch_raw or nl in ch_stripped or nl in cat_raw or nl in cat_stripped)
-        if ok:
-            dozvoljene.append(f"`{cmd}`")
-        else:
-            zabranjene.append(f"`{cmd}` → treba: `{needed}`")
-
-    lines = [
-        f"**Kanal (raw):** `{ch.name}`",
-        f"**Kanal (stripped):** `{ch_stripped}`",
-        f"**Kategorija (raw):** `{ch.category.name if ch.category else 'Nema'}`",
-        f"**Kategorija (stripped):** `{cat_stripped or 'Nema'}`",
-        "",
-        f"**✅ Dozvoljene komande ovdje** ({len(dozvoljene)}):",
-        (", ".join(dozvoljene) if dozvoljene else "_Nema ograničenih komandi ovdje_"),
-        "",
-        f"**❌ Zabranjene komande ovdje** ({len(zabranjene)}):",
-        (", ".join(zabranjene[:20]) if zabranjene else "_Sve dozvoljene!_"),
-    ]
-    e = discord.Embed(
-        title=f"🔍 Kanal Debug — #{ch.name}",
-        description="\n".join(lines),
-        color=COLORS.get("info", 0x5865F2),
-        timestamp=datetime.now(timezone.utc)
-    )
-    e.set_footer(text=f"{BOT_NAME} • Kanal Debug")
-    await i.response.send_message(embed=e, ephemeral=True)
 
 @bot.tree.command(name="setup-autorole", description="⚙️ Postavi automatsku ulogu pri ulasku [ADMIN]")
 @discord.app_commands.describe(uloga="Uloga koja se daje svim novim članovima")
@@ -7957,45 +7881,6 @@ PANEL_PRESETS = [
         ],
     },
 ]
-
-@bot.tree.command(name="setup-panels", description="🏷️ [ADMIN] Auto-kreiraj sva 3 self-role panela odjednom")
-@app_commands.default_permissions(administrator=True)
-async def setup_panels_cmd(i: discord.Interaction, kanal: discord.TextChannel = None):
-    if not i.user.guild_permissions.administrator:
-        return await i.response.send_message("❌ Samo admin.", ephemeral=True)
-    ch = kanal or i.channel
-    await i.response.send_message(embed=em("⏳", f"Kreiram panele u {ch.mention}...", color=COLORS["info"]), ephemeral=True)
-    created, missing = [], []
-    for idx, preset in enumerate(PANEL_PRESETS):
-        key = _selfrole_key(i.guild.id, ch.id) + f":{idx}"
-        # pronađi uloge po imenu (probaj tačan match, pa case-insensitive)
-        roles_found = []
-        for r in preset["roles"]:
-            role = discord.utils.get(i.guild.roles, name=r["name"])
-            if not role:
-                role = next((rr for rr in i.guild.roles if rr.name.lower().strip() == r["name"].lower().strip()), None)
-            if not role:
-                role = next((rr for rr in i.guild.roles if r["label"].lower() in rr.name.lower()), None)
-            if role:
-                roles_found.append({"role_id": role.id, "label": r["label"], "emoji": r["emoji"]})
-            else:
-                missing.append(r["name"])
-        if not roles_found: continue
-        data["selfroles"][key] = {
-            "guild_id": i.guild.id, "channel_id": ch.id, "message_id": None,
-            "title": preset["title"], "description": preset["description"], "roles": roles_found
-        }
-        view = _build_selfrole_view(key)
-        msg = await ch.send(embed=_selfrole_embed(data["selfroles"][key]), view=view)
-        data["selfroles"][key]["message_id"] = msg.id
-        bot.add_view(view, message_id=msg.id)
-        created.append(preset["title"])
-    save_data()
-    desc = f"✅ Kreirano: **{len(created)}** panela\n" + "\n".join(f"• {t}" for t in created)
-    if missing:
-        desc += f"\n\n⚠️ Nisu pronađene uloge: {', '.join(set(missing))}\n*(Pokreni `/setup-uloge` ako ih nemaš)*"
-    await i.followup.send(embed=em("🎉 Paneli postavljeni!", desc, color=COLORS["success"]), ephemeral=True)
-
 
 # ═══════════════════════════════════════════
 #    HELP
